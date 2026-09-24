@@ -1,5 +1,9 @@
 # MCPBytes Vault
 
+[![CI](https://github.com/MCPBytes/mcpbytes-vault/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MCPBytes/mcpbytes-vault/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/MCPBytes/mcpbytes-vault)](https://github.com/MCPBytes/mcpbytes-vault/releases/latest)
+[![License: AGPL-3.0-only](https://img.shields.io/github/license/MCPBytes/mcpbytes-vault)](LICENSE)
+
 A local MCP server that lets an AI agent create secrets it never sees.
 
 The agent asks for a secret (1–64 random bytes) under a label; the vault generates it from your
