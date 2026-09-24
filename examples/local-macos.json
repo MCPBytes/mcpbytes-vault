@@ -1,0 +1,6 @@
+{
+  "state_dir": "/Users/YOUR_USER/Library/Application Support/MCPBytes/Vault/state",
+  "store": { "backend": "macos_keychain" },
+  "label_prefix": "agent-",
+  "mode": "local_only"
+}

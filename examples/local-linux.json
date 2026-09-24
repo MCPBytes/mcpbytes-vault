@@ -1,0 +1,6 @@
+{
+  "state_dir": "/home/YOUR_USER/.local/state/mcpbytes-vault",
+  "store": { "backend": "linux_secret_service" },
+  "label_prefix": "agent-",
+  "mode": "local_only"
+}

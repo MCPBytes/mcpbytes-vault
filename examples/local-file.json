@@ -1,0 +1,6 @@
+{
+  "state_dir": "/home/YOUR_USER/.local/state/mcpbytes-vault",
+  "store": { "backend": "private_file", "directory": "/home/YOUR_USER/.local/share/mcpbytes-vault/keys" },
+  "label_prefix": "agent-",
+  "mode": "local_only"
+}

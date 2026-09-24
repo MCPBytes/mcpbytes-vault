@@ -1,0 +1,6 @@
+{
+  "state_dir": "C:\\Users\\YOUR_USER\\AppData\\Local\\MCPBytes\\Vault\\state",
+  "store": { "backend": "windows_credential_manager" },
+  "label_prefix": "agent-",
+  "mode": "local_only"
+}

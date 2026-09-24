@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" --profile minimal
+      - name: Linux build dependencies (Secret Service)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libdbus-1-dev
+      - name: Test (local-only, the default build)
+        run: cargo test --locked
+      - name: Test (with the remote feature)
+        run: cargo test --locked --features remote
+      - name: Smoke test over MCP stdio
+        run: |
+          cargo build --locked
+          if [ "$RUNNER_OS" = Windows ]; then py=python; exe=.exe; else py=python3; exe=; fi
+          "$py" tests/stdio_smoke.py "target/debug/mcpbytes-vault$exe"
+      - name: Test sealed-core (RFC 9180 vectors)
+        working-directory: sealed-core
+        run: cargo test --locked --all-features

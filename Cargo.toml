@@ -1,0 +1,55 @@
+[package]
+name = "mcpbytes-random-bytes"
+version = "0.3.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+description = "Local MCP server that lets an AI agent create secrets it never sees"
+repository = "https://github.com/MCPBytes/mcpbytes-vault"
+publish = false
+
+[features]
+# The MCPBytes remote contribution: an encrypted hardware draw from the hosted API, mixed with the OS one.
+# Without it the vault is local-only and contains no network code. MCPBytes release builds enable it.
+remote = ["dep:mcpbytes-sealed-core", "dep:reqwest", "dep:rustls"]
+
+[dependencies]
+mcpbytes-sealed-core = { path = "sealed-core", features = ["json"], optional = true }
+hkdf = "=0.12.4"
+sha2 = "=0.10.9"
+getrandom = "=0.4.3"
+zeroize = { version = "=1.8.2", features = ["alloc"] }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"
+base64 = "=0.22.1"
+fs2 = "=0.4.3"
+rmcp = { version = "=3.4.1", default-features = false, features = ["server", "macros", "transport-io"] }
+tokio = { version = "=1.50.0", features = ["macros", "rt-multi-thread", "io-std", "sync", "time", "signal"] }
+reqwest = { version = "=0.13.5", default-features = false, features = ["json", "rustls-no-provider"], optional = true }
+rustls = { version = "=0.23.45", default-features = false, features = ["ring", "std", "tls12"], optional = true }
+# Terminal QR for `totp-qr`; no default features (no image crate).
+qrcode = { version = "=0.14.1", default-features = false }
+
+[[bin]]
+name = "mcpbytes-vault"
+path = "src/main.rs"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+keyring = { version = "=3.6.3", features = ["windows-native"] }
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authorization", "Win32_Storage_FileSystem", "Win32_System_SystemServices"] }
+
+[target.'cfg(unix)'.dependencies]
+libc = "=0.2.177"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "=3.6.3", features = ["sync-secret-service", "crypto-rust", "vendored"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "=3.6.3", features = ["apple-native"] }
+
+[dev-dependencies]
+tempfile = "=3.23.0"
+getrandom = { version = "=0.4.3", features = ["sys_rng"] }
+
+[profile.release]
+panic = "abort"
+lto = true
