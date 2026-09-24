@@ -38,9 +38,10 @@ pub fn install(root: &Path, file_store: bool) -> Result<Installed, String> {
     if !root.is_absolute() {
         return Err("the install folder must be an absolute path".into());
     }
-    // A folder set up by the MCPBytes installer has its own layout (versions, launcher): leave it to that installer.
+    // A folder set up by the mcpbytes.com installer holds the MCPBytes release (its own layout, and a config this
+    // local-only build may not run): never take it over. Say how to update it, or how to install beside it.
     if root.join(".mcpbytes-vault-managed").exists() {
-        return Err(format!("{} was set up by the MCPBytes installer; run that installer again to update it", root.display()));
+        return Err(managed_folder(root));
     }
     let state = root.join("state");
     private_dir(root)?;
@@ -93,6 +94,25 @@ pub fn install(root: &Path, file_store: bool) -> Result<Installed, String> {
     fs::write(&settings, serde_json::to_string_pretty(&server).map_err(|_| "cannot write the settings")? + "\n")
         .map_err(|_| format!("cannot write {}", settings.display()))?;
     Ok(Installed { binary, config, settings, created_config, backend })
+}
+
+/// Why a folder of the mcpbytes.com installer is refused, and the two ways forward.
+fn managed_folder(root: &Path) -> String {
+    let name = root.file_name().map_or("mcpbytes-vault".into(), |n| n.to_string_lossy().into_owned());
+    let beside = root.with_file_name(format!("{name}-local"));
+    let one_line = if cfg!(windows) {
+        format!("$env:MCPBYTES_VAULT_DIR = '{}' before the irm ... | iex line", beside.display())
+    } else {
+        format!("curl ... | sh -s -- --dir '{}'", beside.display())
+    };
+    format!(
+        "{} holds the MCPBytes release, set up by the mcpbytes.com installer; nothing was changed.\n  \
+         To keep that release: update it with its own installer (https://mcpbytes.com/docs/random-bytes).\n  \
+         To install this local-only build beside it: mcpbytes-vault install --dir \"{}\"\n  \
+         (with the one-line installer: {one_line})",
+        root.display(),
+        beside.display()
+    )
 }
 
 /// Creates the folder if needed; never follows a symlink; owner-only on Unix (the journal requires it).
@@ -152,7 +172,15 @@ mod tests {
         assert!(install(Path::new("relative"), false).is_err());
         let root = tempfile::tempdir().unwrap();
         fs::write(root.path().join(".mcpbytes-vault-managed"), "").unwrap();
-        assert!(install(root.path(), false).unwrap_err().contains("MCPBytes installer"));
+        let refusal = install(root.path(), false).unwrap_err();
+        assert!(refusal.contains("mcpbytes.com installer") && refusal.contains("nothing was changed"), "{refusal}");
+        // It names a folder beside it, and installing there works.
+        let beside = root.path().with_file_name(format!("{}-local", root.path().file_name().unwrap().to_string_lossy()));
+        assert!(refusal.contains(&beside.display().to_string()), "{refusal}");
+        let installed = install(&beside, true);
+        let _ = fs::remove_dir_all(&beside);
+        assert!(installed.is_ok());
+        assert!(!root.path().join("bin").exists(), "the refused folder is untouched");
         #[cfg(not(feature = "remote"))]
         {
             let root = tempfile::tempdir().unwrap();

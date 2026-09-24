@@ -1,6 +1,7 @@
 # Installs MCPBytes Vault from the latest GitHub release, for the current user:
 #   irm https://github.com/MCPBytes/mcpbytes-vault/releases/latest/download/install.ps1 | iex
 # Private files instead of Credential Manager:  $env:MCPBYTES_VAULT_STORE = 'file'; irm ... | iex
+# Another folder (e.g. beside an MCPBytes release):  $env:MCPBYTES_VAULT_DIR = '<folder>'; irm ... | iex
 # It downloads the Windows archive, checks it against the release's SHA256SUMS.txt, unpacks it in a
 # temporary folder and runs `mcpbytes-vault install`, which copies the program into place.
 & {
@@ -21,9 +22,13 @@
         if (-not $expected -or $expected -ne $actual) { throw "$archive does not match SHA256SUMS.txt; nothing was installed." }
         Expand-Archive -Path (Join-Path $tmp $archive) -DestinationPath $tmp
         $exe = Get-ChildItem -Path $tmp -Recurse -Filter 'mcpbytes-vault.exe' | Select-Object -First 1
-        $options = if ($env:MCPBYTES_VAULT_STORE) { @('--store', $env:MCPBYTES_VAULT_STORE) } else { @() }
+        # iex cannot pass arguments: options come from environment variables.
+        $options = @()
+        if ($env:MCPBYTES_VAULT_STORE) { $options += '--store', $env:MCPBYTES_VAULT_STORE }
+        if ($env:MCPBYTES_VAULT_DIR) { $options += '--dir', $env:MCPBYTES_VAULT_DIR }
         & $exe.FullName install @options
-        if ($LASTEXITCODE -ne 0) { throw 'mcpbytes-vault install failed.' }
+        # mcpbytes-vault has printed why; a thrown error would bury that under its own message.
+        if ($LASTEXITCODE -ne 0) { Write-Host "`nNothing was installed: see the message above." -ForegroundColor Yellow }
     } finally {
         Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
     }

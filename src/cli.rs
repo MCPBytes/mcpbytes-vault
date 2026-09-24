@@ -157,8 +157,10 @@ fn install_command(args: &Args) -> i32 {
     if done.backend == "linux_secret_service" {
         println!("\nThe Secret Service needs an unlocked desktop keyring. On a server, install into a new folder with --store file.");
     }
-    // PowerShell runs a quoted path only through the call operator.
-    println!("\nManage your secrets with: {}{binary} list", if cfg!(windows) { "& " } else { "" });
+    // PowerShell runs a quoted path only through the call operator. Outside the default folder, owner commands need
+    // --config: without it they would read the default one (possibly another install's).
+    let config_flag = if config::default_path().as_deref() == Some(done.config.as_path()) { String::new() } else { format!(" --config {config}") };
+    println!("\nManage your secrets with: {}{binary} list{config_flag}", if cfg!(windows) { "& " } else { "" });
     0
 }
 

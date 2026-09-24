@@ -39,6 +39,12 @@ Your OS credential store is the default. For private files instead (for example 
 without a desktop keyring): `curl ... | sh -s -- --store file`, or in PowerShell
 `$env:MCPBYTES_VAULT_STORE = 'file'` before the `irm` line.
 
+The installer never takes over a folder set up by the [mcpbytes.com](https://mcpbytes.com/docs/random-bytes)
+installer (the MCPBytes release, with the optional hardware contribution): it stops, changes nothing and
+says so. To keep that release, update it with its own installer. To install this build beside it, choose
+another folder: `curl ... | sh -s -- --dir <folder>`, or in PowerShell `$env:MCPBYTES_VAULT_DIR = '<folder>'`
+before the `irm` line.
+
 The executable is its own installer, so you can also download an archive from the
 [releases](https://github.com/MCPBytes/mcpbytes-vault/releases), compare it with `SHA256SUMS.txt`,
 and run `mcpbytes-vault install [--store native|file] [--dir <folder>]` (macOS binaries are unsigned: a

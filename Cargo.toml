@@ -1,6 +1,6 @@
 [package]
 name = "mcpbytes-random-bytes"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 license = "AGPL-3.0-only"
 description = "Local MCP server that lets an AI agent create secrets it never sees"
